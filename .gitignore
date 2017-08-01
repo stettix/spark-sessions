@@ -1,0 +1,9 @@
+/target
+/classes
+/checkouts
+/project/project
+*.class
+.idea
+.ensime*
+*/target
+.DS_Store

@@ -1,0 +1,3 @@
+# Spark sessionization
+
+Details TBD.
