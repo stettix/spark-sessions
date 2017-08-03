@@ -27,7 +27,7 @@ abstract class SessionsSpec extends FlatSpec with Matchers with Spark {
       Session("user1", 1, 10, count = 3),
       Session("user1", 55, 55, count = 1)
     )
-    GroupBy.sessionize(user1Clicks.toDS(), 10).collect() should contain theSameElementsAs expected
+    sessionize(user1Clicks.toDS(), 10).collect() should contain theSameElementsAs expected
   }
 
   it should "return the expected sessions for multiple users" in {
@@ -38,12 +38,12 @@ abstract class SessionsSpec extends FlatSpec with Matchers with Spark {
       Session("user2", 50, 50, count = 1),
       Session("user2", 100, 100, count = 1)
     )
-    GroupBy.sessionize(clicks.toDS(), 10).collect() should contain theSameElementsAs expected
+    sessionize(clicks.toDS(), 10).collect() should contain theSameElementsAs expected
     assert(2 + 2 == 4)
   }
 
   it should "return nothing for empty input" in {
-    GroupBy.sessionize(Seq[Click]().toDS(), 10).collect() shouldBe empty
+    sessionize(Seq[Click]().toDS(), 10).collect() shouldBe empty
   }
 
 }
