@@ -48,19 +48,19 @@ abstract class SessionsSpec extends FlatSpec with Matchers with Spark {
 
 }
 
-class GroupBySpec() extends SessionsSpec {
+class GroupBySessionsSpec() extends SessionsSpec {
 
-  def sessionize(clicks: Dataset[Click], maxSessionDuration: Long)(implicit spark: SparkSession): Dataset[Session] = GroupBy.sessionize(clicks, maxSessionDuration)
-
-}
-
-class PartitionSpec() extends SessionsSpec {
-
-  def sessionize(clicks: Dataset[Click], maxSessionDuration: Long)(implicit spark: SparkSession): Dataset[Session] = Partitions.sessionize(clicks, maxSessionDuration)
+  def sessionize(clicks: Dataset[Click], maxSessionDuration: Long)(implicit spark: SparkSession): Dataset[Session] = GroupBySessions.sessionize(clicks, maxSessionDuration)
 
 }
 
-class WindowFunctionsSpec() extends SessionsSpec {
+class SortWithinPartitionsSessionsSpec() extends SessionsSpec {
+
+  def sessionize(clicks: Dataset[Click], maxSessionDuration: Long)(implicit spark: SparkSession): Dataset[Session] = SortWithinPartitionsSessions.sessionize(clicks, maxSessionDuration)
+
+}
+
+class WindowFunctionsSessionsSpec() extends SessionsSpec {
 
   def sessionize(clicks: Dataset[Click], maxSessionDuration: Long)(implicit spark: SparkSession): Dataset[Session] = WindowsFunctions.sessionize(clicks, maxSessionDuration)
 
