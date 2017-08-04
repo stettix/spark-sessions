@@ -3,11 +3,12 @@ package net.janvsmachine.sparksessions
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql._
+import org.apache.spark.sql.types.IntegerType
 
 
 case class Click(userId: String, targetId: String, timestamp: Long)
 
-case class Session(userId: String, startTime: Long, endTime: Long, count: Int)
+case class Session(userId: String, startTime: Long, endTime: Long, count: Long)
 
 /**
   * Common code for sessions implementations
@@ -49,6 +50,8 @@ object GroupBy extends Sessions with Spark {
 
   def sessionize(clicks: Dataset[Click], maxSessionDuration: Long)(implicit spark: SparkSession): Dataset[Session] = {
 
+    import spark.implicits._
+
     def sessionizeClicks(clicks: Iterable[Click]): Seq[Session] = {
       def mergeClickWithSessions(sessions: Seq[Session], click: Click): Seq[Session] =
         if (sessions.nonEmpty && click.timestamp <= sessions.head.endTime + maxSessionDuration) {
@@ -68,7 +71,6 @@ object GroupBy extends Sessions with Spark {
         .flatMapValues(sessionizeClicks)
         .values
 
-    import spark.implicits._
     spark.createDataset(sessions)
   }
 }
@@ -81,6 +83,23 @@ object Partitions extends Sessions with Spark {
 
 object WindowsFunctions extends Sessions with Spark {
 
-  def sessionize(clicks: Dataset[Click], maxSessionDuration: Long)(implicit spark: SparkSession): Dataset[Session] = ???
+  def sessionize(clicks: Dataset[Click], maxSessionDuration: Long)(implicit spark: SparkSession): Dataset[Session] = {
+
+    import org.apache.spark.sql.functions._
+    import spark.implicits._
+
+    // TODO: Try writing this using the Dataset + Dataframe DSLs?
+    val clicksWithSessionIds = clicks
+      .selectExpr("*", "lag (timestamp, 1) over (partition by userId order by timestamp) as lastTimestamp")
+      .selectExpr("*", "timestamp - lastTimestamp as timeDiff", s"case when timestamp - lastTimestamp < $maxSessionDuration then 0 else 1 end as isNewSession")
+      .selectExpr("*", "sum(isNewSession) over (order by userId, timestamp) as sessionId")
+
+    clicksWithSessionIds.explain(true)
+
+    clicksWithSessionIds
+      .groupBy("userId", "sessionId")
+      .agg(min("timestamp").as("startTime"), max("timestamp").as("endTime"), count("*").as("count"))
+      .as[Session]
+  }
 
 }
