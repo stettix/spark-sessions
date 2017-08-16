@@ -1,9 +1,9 @@
 package net.janvsmachine.sparksessions
 
-import org.apache.spark.sql.{Dataset, Row, SparkSession}
+import org.apache.spark.sql.{Dataset, SparkSession}
 
 /**
-  * Partition datasets by keys and sort within partitions, then use `mapPartitions` to produce sessions.
+  * Partition datasets by keys and sort within partitions, then use [[Dataset.mapPartitions()]] to produce sessions.
   *
   * See "High Performance Spark" by Karau & Warren, and "Advanced Analytics with Spark" by Ryz, Laserson, Owen & Wills
   * for details.
@@ -18,23 +18,30 @@ object SortWithinPartitionsSessions extends Sessions with Spark {
       .repartition('userId)
       .sortWithinPartitions('userId, 'timestamp)
 
-    def aggregateClicks(clicks: Iterator[Click]): Iterator[Session] = {
-      /* TODO! Make subSequences function use iterators instead. */
-      val clicksSeq = clicks.toSeq
+    partitionedAndSortedClicks.mapPartitions(aggregateClicks(maxSessionDuration))
+  }
 
-      val sessionClicks: Seq[Seq[Click]] = Sequences.subSequences(clicksSeq, (c1: Click, c2: Click) => c1.userId == c2.userId && Math.abs(c2.timestamp - c1.timestamp) < maxSessionDuration)
-      val sessions: Seq[Session] = sessionClicks.map { clicksForSession =>
-        assert(clicksForSession.nonEmpty)
-        val sorted = clicksForSession.sortBy(_.timestamp)
-        val startTime = sorted.head.timestamp
-        val endTime = sorted.last.timestamp
-        Session(clicksForSession.head.userId, startTime, endTime, clicksForSession.size)
-      }
+  // Aggregate clicks into sessions.
+  // Assumes the given clicks are sorted by grouping columns (e.g. user) and timestamp.
+  // Takes care not to use in-memory structures for any part.
+  private[sparksessions] def aggregateClicks(maxSessionDuration: Long)(clicks: Iterator[Click]): Iterator[Session] = {
 
-      sessions.iterator
+    def mergeClickWithSessions(sessions: (Iterator[Session], Option[Session]), click: Click): (Iterator[Session], Option[Session]) = sessions match {
+      case (prev, None) =>
+        val newSession = Session(click.userId, click.timestamp, click.timestamp, count = 1)
+        prev -> Some(newSession)
+      case (prev, Some(session)) if click.userId == session.userId && click.timestamp - session.endTime < maxSessionDuration =>
+        val updatedSession = session.copy(endTime = click.timestamp, count = session.count + 1)
+        prev -> Some(updatedSession)
+      case (prev, Some(session)) =>
+        val newSession = Session(click.userId, click.timestamp, click.timestamp, count = 1)
+        (Iterator[Session](session) ++ prev) -> Some(newSession)
     }
 
-    partitionedAndSortedClicks.mapPartitions(aggregateClicks)
+    val (sessions, lastSession) = clicks.foldLeft(Iterator[Session]() -> Option.empty[Session])(mergeClickWithSessions)
+    val allSessions = lastSession.map(s => Iterator[Session](s) ++ sessions).getOrElse(sessions)
+
+    allSessions
   }
 
 }

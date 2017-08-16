@@ -4,6 +4,7 @@ import com.amazonaws.auth.DefaultAWSCredentialsProviderChain
 import org.apache.spark.sql.SparkSession
 
 // TODO: Create the spark session in the trait, and import implicits, to reduce the amount of boilerplate
+// TODO: Ditch the AWS bits here?
 trait Spark {
 
   def createSession(local: Boolean): SparkSession = {
