@@ -76,7 +76,7 @@ class SortWithinPartitionsSessionsSpec() extends SessionsSpec {
     // Make it so big that it would run very slow, or blow up, if the implementation pulled it all into memory.
 
     val maxTime = 10000000
-    val clicks: Iterator[Click] = Iterator.from(1).take(maxTime).map(t => Click("user1", "page", t))
+    val clicks: Iterator[Click] = (1 to maxTime).view.map(t => Click("user1", "page", t)).iterator
     aggregateClicks(maxSessionDuration = 10)(clicks).toSeq should contain theSameElementsAs Seq(Session("user1", 1, maxTime, maxTime))
   }
 
@@ -85,7 +85,8 @@ class SortWithinPartitionsSessionsSpec() extends SessionsSpec {
     // Make it so big that it would run very slow, or blow up, if the implementation pulled it all into memory.
 
     val numClicks = 10000000
-    //val clicks: Iterator[Click] = Iterator.from(1).take(numClicks).map(t => Click("user1", t.toString, 10 * t))
+
+    // Note: Be careful to create the test input iterator in a way that doesn't hold on to memory!
     val clicks: Iterator[Click] = (1 to numClicks).view.map(t => Click("user1", t.toString, 10 * t)).iterator
     aggregateClicks(maxSessionDuration = 1)(clicks).size shouldBe numClicks
   }
