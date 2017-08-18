@@ -26,22 +26,22 @@ object SortWithinPartitionsSessions extends Sessions with Spark {
   // Takes care not to use in-memory structures for any part.
   private[sparksessions] def aggregateClicks(maxSessionDuration: Long)(clicks: Iterator[Click]): Iterator[Session] = {
 
-    def mergeClickWithSessions(sessions: (Iterator[Session], Option[Session]), click: Click): (Iterator[Session], Option[Session]) = sessions match {
+    def mergeClickWithSessions(sessions: (Stream[Session], Option[Session]), click: Click): (Stream[Session], Option[Session]) = sessions match {
       case (prev, None) =>
         val newSession = Session(click.userId, click.timestamp, click.timestamp, count = 1)
         prev -> Some(newSession)
-      case (prev, Some(session)) if click.userId == session.userId && click.timestamp - session.endTime < maxSessionDuration =>
-        val updatedSession = session.copy(endTime = click.timestamp, count = session.count + 1)
+      case (prev, Some(currentSession)) if click.userId == currentSession.userId && click.timestamp - currentSession.endTime < maxSessionDuration =>
+        val updatedSession = currentSession.copy(endTime = click.timestamp, count = currentSession.count + 1)
         prev -> Some(updatedSession)
-      case (prev, Some(session)) =>
+      case (prev, Some(currentSession)) =>
         val newSession = Session(click.userId, click.timestamp, click.timestamp, count = 1)
-        (Iterator[Session](session) ++ prev) -> Some(newSession)
+        (currentSession #:: prev) -> Some(newSession)
     }
 
-    val (sessions, lastSession) = clicks.foldLeft(Iterator[Session]() -> Option.empty[Session])(mergeClickWithSessions)
-    val allSessions = lastSession.map(s => Iterator[Session](s) ++ sessions).getOrElse(sessions)
+    val (sessions, lastSession) = clicks.foldLeft(Stream[Session]() -> Option.empty[Session])(mergeClickWithSessions)
+    val allSessions = lastSession.map(s => Stream[Session](s) ++ sessions).getOrElse(sessions)
 
-    allSessions
+    allSessions.iterator
   }
 
 }
