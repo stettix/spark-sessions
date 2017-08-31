@@ -84,7 +84,7 @@ class SortWithinPartitionsSessionsSpec() extends SessionsSpec {
     // Create a stream of clicks that will all map to its own session.
     // Make it so big that it would run very slow, or blow up, if the implementation pulled it all into memory.
 
-    val numClicks = 10000000
+    val numClicks = 1000000
 
     // Note: Be careful to create the test input iterator in a way that doesn't hold on to memory!
     val clicks: Iterator[Click] = (1 to numClicks).view.map(t => Click("user1", t.toString, 10 * t)).iterator
@@ -95,6 +95,6 @@ class SortWithinPartitionsSessionsSpec() extends SessionsSpec {
 class WindowFunctionsSessionsSpec() extends SessionsSpec {
 
   def sessionize(clicks: Dataset[Click], maxSessionDuration: Long)(implicit spark: SparkSession): Dataset[Session] =
-    WindowsFunctions.sessionize(clicks, maxSessionDuration)
+    WindowsFunctionSessions.sessionize(clicks, maxSessionDuration)
 
 }
