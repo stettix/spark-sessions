@@ -21,6 +21,17 @@ val dependencySettings = Seq(
   }
 )
 
+val assemblySettings = Seq(
+  assemblyMergeStrategy in assembly := {
+    case PathList("org.apache.spark.sql.sources.DataSourceRegister") => MergeStrategy.concat
+    case PathList("META-INF", "services", xs@_) => MergeStrategy.concat
+    case PathList("META-INF", "native", xs@_) => MergeStrategy.first
+    case PathList("META-INF", xs@_*) => MergeStrategy.discard
+    case x => MergeStrategy.first
+  }
+)
+
 val root = (project in file(".")).
   settings(buildSettings: _*).
-  settings(dependencySettings: _*)
+  settings(dependencySettings: _*).
+  settings(assemblySettings: _*)
