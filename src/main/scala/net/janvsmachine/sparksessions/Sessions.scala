@@ -19,7 +19,7 @@ trait Sessions extends LazyLogging {
   self: Spark =>
 
   def main(args: Array[String]): Unit = {
-    if (args.length < 3 || args.length > 3) {
+    if (args.length < 2 || args.length > 3) {
       println(s"Usage: ${getClass.getSimpleName.dropRight(1)} <input path> <output path> [local]")
       System.exit(-1)
     }
@@ -38,8 +38,8 @@ trait Sessions extends LazyLogging {
 
   def loadClicks(path: String)(implicit spark: SparkSession): Dataset[Click] = {
     import spark.implicits._
-    spark.read.option("header", "true").csv(path)
-      .map { case Row(userId: String, documentId: String, timestamp: String, _, _, _) => Click(userId, documentId, timestamp.toLong) }
+    spark.read.parquet(path)
+      .map(row => Click(row.getAs[String]("uuid"), row.getAs[Int]("document_id").toString, row.getAs[Int]("timestamp").toLong + 1465876799998L))
   }
 
   def sessionize(clicks: Dataset[Click], maxSessionDuration: Long)(implicit spark: SparkSession): Dataset[Session]

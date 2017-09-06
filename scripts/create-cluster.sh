@@ -5,8 +5,11 @@ set -x
 KEYNAME=${1? "Must provide KeyName parameter"}
 
 CLUSTERID=$(aws emr create-cluster --name "Spark sessionization" --release-label emr-5.8.0 \
+  --tags "Name=Spark Sessionization" \
   --applications Name=Spark Name=Ganglia \
   --instance-type m4.xlarge \
   --instance-count 4 \
+  --log-uri 's3://logs.multe.co.uk/elasticmapreduce/' \
+  --enable-debugging \
   --use-default-roles \
   --ec2-attributes KeyName=$KEYNAME,SubnetId=subnet-c434a8a3,AdditionalMasterSecurityGroups=sg-49a3e531| grep -o 'j-\w*')
