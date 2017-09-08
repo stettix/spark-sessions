@@ -7,7 +7,7 @@ CLUSTERID=${1?"Must provide Cluster ID parameter"}
 
 FILE=s3://datasets.multe.co.uk/jars/spark-sessions-assembly-0.0.1.jar
 INPUTPATH=s3://datasets.multe.co.uk/page_views.parquet
-OUTPUTPATH=s3://datasets.multe.co.uk/sessions/groupby
+OUTPUTPATH=s3://datasets.multe.co.uk/sessions/sortedpartitions
 
 aws emr --region eu-west-1 add-steps --cluster-id $CLUSTERID \
-    --steps Type=Spark,Name="Session using GroupBy",Args=[--class,net.janvsmachine.sparksessions.GroupBySessions,--master,yarn,--deploy-mode,cluster,$FILE,$INPUTPATH,$OUTPUTPATH]
+    --steps Type=Spark,Name="Sessions using sorted partitions",Args=[--class,net.janvsmachine.sparksessions.SortWithinPartitionsSessions,--master,yarn,--deploy-mode,cluster,$FILE,$INPUTPATH,$OUTPUTPATH]
