@@ -6,7 +6,7 @@ val buildSettings = Seq(
   scalacOptions := Seq("-unchecked", "-deprecation", "-feature", "-encoding", "utf8", "-target:jvm-1.8", "-Xfatal-warnings", "-Xfuture")
 )
 
-val sparkVersion = "2.1.1"
+val sparkVersion = "2.2.0"
 val awsVersion = "1.11.61"
 
 val dependencySettings = Seq(
