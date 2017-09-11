@@ -1,10 +1,7 @@
 package net.janvsmachine.sparksessions
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.spark.rdd.RDD
 import org.apache.spark.sql._
-import org.apache.spark.sql.expressions._
-import org.apache.spark.sql.functions._
 
 
 case class Click(userId: String, targetId: String, timestamp: Long)
@@ -17,6 +14,8 @@ case class Session(userId: String, startTime: Long, endTime: Long, count: Long)
 trait Sessions extends LazyLogging {
 
   self: Spark =>
+
+  import Sessions._
 
   def main(args: Array[String]): Unit = {
     if (args.length < 2 || args.length > 3) {
@@ -36,12 +35,16 @@ trait Sessions extends LazyLogging {
     sessionized.write.mode(SaveMode.Overwrite).csv(outputPath)
   }
 
+  def sessionize(clicks: Dataset[Click], maxSessionDuration: Long)(implicit spark: SparkSession): Dataset[Session]
+
+}
+
+object Sessions {
+
   def loadClicks(path: String)(implicit spark: SparkSession): Dataset[Click] = {
     import spark.implicits._
     spark.read.parquet(path)
       .map(row => Click(row.getAs[String]("uuid"), row.getAs[Int]("document_id").toString, row.getAs[Int]("timestamp").toLong + 1465876799998L))
   }
-
-  def sessionize(clicks: Dataset[Click], maxSessionDuration: Long)(implicit spark: SparkSession): Dataset[Session]
 
 }

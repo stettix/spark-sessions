@@ -23,7 +23,7 @@ object WindowsFunctionSessions extends Sessions with Spark {
           .as('isNewSession))
       .select('userId, 'timestamp,
         sum('isNewSession)
-          .over(Window.orderBy('userId, 'timestamp))
+          .over(Window.partitionBy('userId).orderBy('userId, 'timestamp))
           .as('sessionId))
 
     clicksWithSessionIds
