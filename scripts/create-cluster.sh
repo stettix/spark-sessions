@@ -10,7 +10,10 @@ CLUSTERID=$(aws emr create-cluster --name "Spark sessionization" --release-label
   --instance-groups '
 [
   {
+    "Name": "Driver",
     "InstanceCount": 1,
+    "InstanceGroupType": "MASTER",
+    "InstanceType": "m4.4xlarge",
     "EbsConfiguration": {
       "EbsBlockDeviceConfigs": [
         {
@@ -22,13 +25,13 @@ CLUSTERID=$(aws emr create-cluster --name "Spark sessionization" --release-label
         }
       ]
     },
-    "InstanceGroupType": "MASTER",
-    "InstanceType": "m4.4xlarge",
-    "Name": "Driver",
     "BidPrice": "0.20"
   },
   {
+    "Name": "Worker nodes",
+    "InstanceGroupType": "CORE",
     "InstanceCount": 4,
+    "InstanceType": "m4.4xlarge",
     "EbsConfiguration": {
       "EbsBlockDeviceConfigs": [
         {
@@ -40,9 +43,6 @@ CLUSTERID=$(aws emr create-cluster --name "Spark sessionization" --release-label
         }
       ]
     },
-    "InstanceGroupType": "CORE",
-    "InstanceType": "m4.4xlarge",
-    "Name": "Worker nodes",
     "BidPrice": "0.20"
   }
 ]' \
