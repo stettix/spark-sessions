@@ -29,7 +29,7 @@ abstract class SessionsSpec extends FlatSpec with Matchers with Spark {
     Session("user2", 100, 100, count = 1)
   )
 
-  "Sessionizing user clicks" should "return sessions for single user" in {
+  "Sessionizing user clicks" must "return sessions for single user" in {
     val user1Clicks = clicks.filter(_.userId == "user1")
     val expected = Seq(
       Session("user1", 1, 10, count = 3),
@@ -38,16 +38,15 @@ abstract class SessionsSpec extends FlatSpec with Matchers with Spark {
     sessionize(user1Clicks.toDS(), 10).collect() should contain theSameElementsAs expected
   }
 
-  it should "return the expected sessions for multiple users" in {
+  it must "return the expected sessions for multiple users" in {
     sessionize(clicks.toDS(), 10).collect() should contain theSameElementsAs expectedSessions
-    assert(2 + 2 == 4)
   }
 
-  it should "return nothing for empty input" in {
+  it must "return nothing for empty input" in {
     sessionize(Seq[Click]().toDS(), 10).collect() shouldBe empty
   }
 
-  it should "return a single session for a single click" in {
+  it must "return a single session for a single click" in {
     sessionize(Seq(Click("user1", "pageA", 100)).toDS(), 10).collect() should contain theSameElementsAs Seq(Session("user1", 100, 100, 1))
   }
 
@@ -71,7 +70,7 @@ class SortWithinPartitionsSessionsSpec() extends SessionsSpec {
     aggregateClicks(10)(sortedClicks.iterator).toSeq should contain theSameElementsAs expectedSessions
   }
 
-  it should "iterate efficiently over very large sequences of clicks that map to a single session without blowing up" in {
+  it must "iterate efficiently over very large sequences of clicks that map to a single session without blowing up" in {
     // Create a stream of clicks that will all map to a single session.
     // Make it so big that it would run very slow, or blow up, if the implementation pulled it all into memory.
 
@@ -80,11 +79,11 @@ class SortWithinPartitionsSessionsSpec() extends SessionsSpec {
     aggregateClicks(maxSessionDuration = 10)(clicks).toSeq should contain theSameElementsAs Seq(Session("user1", 1, maxTime, maxTime))
   }
 
-  it should "iterate efficiently over sequences of clicks that map to a very large number of sessions without blowing up" in {
+  it must "iterate efficiently over sequences of clicks that map to a very large number of sessions without blowing up" in {
     // Create a stream of clicks that will all map to its own session.
     // Make it so big that it would run very slow, or blow up, if the implementation pulled it all into memory.
 
-    val numClicks = 1000000
+    val numClicks = 100000000
 
     // Note: Be careful to create the test input iterator in a way that doesn't hold on to memory!
     val clicks: Iterator[Click] = (1 to numClicks).view.map(t => Click("user1", t.toString, 10 * t)).iterator
