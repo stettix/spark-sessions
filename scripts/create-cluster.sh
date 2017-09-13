@@ -25,7 +25,7 @@ CLUSTERID=$(aws emr create-cluster --name "Spark sessionization" --release-label
         }
       ]
     },
-    "BidPrice": "0.20"
+    "BidPrice": "0.25"
   },
   {
     "Name": "Worker nodes",
@@ -43,7 +43,7 @@ CLUSTERID=$(aws emr create-cluster --name "Spark sessionization" --release-label
         }
       ]
     },
-    "BidPrice": "0.20"
+    "BidPrice": "0.25"
   }
 ]' \
   --log-uri 's3://logs.multe.co.uk/elasticmapreduce/' \
