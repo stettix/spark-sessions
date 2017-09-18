@@ -91,9 +91,9 @@ class SortWithinPartitionsSessionsSpec() extends SessionsSpec {
   }
 }
 
-class WindowFunctionsSessionsSpec() extends SessionsSpec {
+class WindowFunctionSessionsSpec() extends SessionsSpec {
 
   def sessionize(clicks: Dataset[Click], maxSessionDuration: Long)(implicit spark: SparkSession): Dataset[Session] =
-    WindowsFunctionSessions.sessionize(clicks, maxSessionDuration)
+    WindowFunctionSessions.sessionize(clicks, maxSessionDuration)
 
 }

@@ -7,7 +7,7 @@ import org.apache.spark.sql.{Dataset, SparkSession}
 /**
   * Implements sessionization using Spark SQL window functions.
   */
-object WindowsFunctionSessions extends Sessions with Spark {
+object WindowFunctionSessions extends Sessions with Spark {
 
   def sessionize(clicks: Dataset[Click], maxSessionDuration: Long)(implicit spark: SparkSession): Dataset[Session] = {
 
